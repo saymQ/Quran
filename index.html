@@ -976,74 +976,451 @@
             detectStartingPosition(spokenWords) {
                 if (!this.quranDatabase) return null;
                 
-                console.log("🔍 Detecting position for words:", spokenWords);
+                console.log("🧠 MASTER AI: Advanced detection started for:", spokenWords);
                 
-                // Clean and normalize spoken words
-                const cleanSpokenWords = spokenWords.map(word => this.cleanArabicText(word.toLowerCase()));
-                console.log("🧹 Cleaned spoken words:", cleanSpokenWords);
+                // REVOLUTIONARY MULTI-PHASE DETECTION
+                const cleanSpokenWords = spokenWords.map(word => this.superCleanArabicText(word));
+                console.log("🔬 Phase 1 - Ultra-cleaned words:", cleanSpokenWords);
                 
-                let bestMatch = null;
-                let bestScore = 0;
+                let detectionResults = [];
+                
+                // PHASE 1: EXACT SEQUENCE MATCHING (Highest Priority)
+                detectionResults.push(...this.exactSequenceDetection(cleanSpokenWords));
+                
+                // PHASE 2: FUZZY SEQUENCE MATCHING 
+                detectionResults.push(...this.fuzzySequenceDetection(cleanSpokenWords));
+                
+                // PHASE 3: PARTIAL WORD MATCHING
+                detectionResults.push(...this.partialWordDetection(cleanSpokenWords));
+                
+                // PHASE 4: PHONETIC MATCHING (Pakistani/Regional)
+                detectionResults.push(...this.phoneticDetection(cleanSpokenWords));
+                
+                // PHASE 5: ROOT-BASED MATCHING
+                detectionResults.push(...this.rootBasedDetection(cleanSpokenWords));
+                
+                // PHASE 6: CONTEXTUAL PATTERN MATCHING
+                detectionResults.push(...this.contextualPatternDetection(cleanSpokenWords));
+                
+                // MASTER SCORING: Find best match across all phases
+                const bestMatch = this.findBestMatch(detectionResults);
+                
+                if (bestMatch) {
+                    console.log(`🏆 MASTER AI FOUND: ${bestMatch.surahName} ${bestMatch.verse} (${bestMatch.confidence}% confidence)`);
+                    console.log(`🎯 Detection Method: ${bestMatch.method}`);
+                    console.log(`📊 Matched Pattern: ${bestMatch.pattern}`);
+                } else {
+                    console.log("❌ MASTER AI: No match found across all detection phases");
+                    this.provideIntelligentHints(cleanSpokenWords);
+                }
+                
+                return bestMatch;
+            }
+
+            // REVOLUTIONARY PHASE 1: EXACT SEQUENCE DETECTION
+            exactSequenceDetection(spokenWords) {
+                const results = [];
                 
                 for (let surahNum in this.quranDatabase) {
                     const surah = this.quranDatabase[surahNum];
                     
                     for (let verseIndex = 0; verseIndex < surah.verses.length; verseIndex++) {
                         const verse = surah.verses[verseIndex];
-                        const cleanVerseWords = verse.map(word => this.cleanArabicText(word.toLowerCase()));
+                        const cleanVerseWords = verse.map(word => this.superCleanArabicText(word));
                         
-                        // Try matching from the beginning of the verse
-                        const matchScore = this.calculateVerseMatchScore(cleanSpokenWords, cleanVerseWords);
+                        // Check for exact sequence match at any position in verse
+                        for (let startPos = 0; startPos <= cleanVerseWords.length - spokenWords.length; startPos++) {
+                            let exactMatches = 0;
+                            
+                            for (let i = 0; i < spokenWords.length && i + startPos < cleanVerseWords.length; i++) {
+                                if (spokenWords[i] === cleanVerseWords[startPos + i]) {
+                                    exactMatches++;
+                                }
+                            }
+                            
+                            if (exactMatches >= Math.min(3, spokenWords.length)) {
+                                const confidence = (exactMatches / spokenWords.length) * 100;
+                                results.push({
+                                    surahNumber: parseInt(surahNum),
+                                    surahName: surah.name,
+                                    verse: verseIndex + 1,
+                                    confidence: confidence,
+                                    method: 'Exact Sequence',
+                                    pattern: spokenWords.slice(0, exactMatches).join(' '),
+                                    priority: 1
+                                });
+                            }
+                        }
+                    }
+                }
+                
+                return results;
+            }
+
+            // REVOLUTIONARY PHASE 2: FUZZY SEQUENCE MATCHING
+            fuzzySequenceDetection(spokenWords) {
+                const results = [];
+                
+                for (let surahNum in this.quranDatabase) {
+                    const surah = this.quranDatabase[surahNum];
+                    
+                    for (let verseIndex = 0; verseIndex < surah.verses.length; verseIndex++) {
+                        const verse = surah.verses[verseIndex];
+                        const cleanVerseWords = verse.map(word => this.superCleanArabicText(word));
                         
-                        if (matchScore.score > bestScore && matchScore.score >= 0.6) { // Lower threshold
-                            bestScore = matchScore.score;
-                            bestMatch = {
+                        // Advanced fuzzy matching with word position flexibility
+                        let fuzzyScore = 0;
+                        let matchedPattern = [];
+                        
+                        for (let spokenWord of spokenWords) {
+                            let bestWordMatch = 0;
+                            let bestMatchedWord = '';
+                            
+                            for (let verseWord of cleanVerseWords) {
+                                const similarity = this.advancedSimilarity(spokenWord, verseWord);
+                                if (similarity > bestWordMatch && similarity >= 80) {
+                                    bestWordMatch = similarity;
+                                    bestMatchedWord = verseWord;
+                                }
+                            }
+                            
+                            if (bestWordMatch > 0) {
+                                fuzzyScore += bestWordMatch;
+                                matchedPattern.push(bestMatchedWord);
+                            }
+                        }
+                        
+                        const confidence = fuzzyScore / spokenWords.length;
+                        
+                        if (confidence >= 70) {
+                            results.push({
                                 surahNumber: parseInt(surahNum),
                                 surahName: surah.name,
                                 verse: verseIndex + 1,
-                                verseWords: verse,
-                                matchedWords: matchScore.matchedWords,
-                                score: matchScore.score
-                            };
+                                confidence: confidence,
+                                method: 'Fuzzy Sequence',
+                                pattern: matchedPattern.join(' '),
+                                priority: 2
+                            });
                         }
                     }
                 }
                 
-                if (bestMatch) {
-                    console.log(`✅ Best match found: ${bestMatch.surahName} ${bestMatch.verse} (Score: ${(bestMatch.score * 100).toFixed(1)}%)`);
-                    console.log(`📝 Matched words: ${bestMatch.matchedWords}`);
-                } else {
-                    console.log("❌ No suitable match found");
-                    console.log("🔍 Try reciting 3-4 words clearly from the beginning of a verse");
-                }
-                
-                return bestMatch;
+                return results;
             }
 
-            calculateVerseMatchScore(spokenWords, verseWords) {
-                if (spokenWords.length === 0 || verseWords.length === 0) {
-                    return { score: 0, matchedWords: 0 };
-                }
+            // REVOLUTIONARY PHASE 3: PARTIAL WORD MATCHING
+            partialWordDetection(spokenWords) {
+                const results = [];
                 
-                let matchedWords = 0;
-                let totalCompared = Math.min(spokenWords.length, verseWords.length, 5); // Compare max 5 words
-                
-                for (let i = 0; i < totalCompared; i++) {
-                    const spokenWord = spokenWords[i];
-                    const verseWord = verseWords[i];
+                for (let surahNum in this.quranDatabase) {
+                    const surah = this.quranDatabase[surahNum];
                     
-                    if (this.isWordSimilar(spokenWord, verseWord)) {
-                        matchedWords++;
-                    } else {
-                        // Try approximate matching for Pakistani accent
-                        if (this.isPakistaniVariant(spokenWord, verseWord)) {
-                            matchedWords += 0.8; // Partial credit for accent variations
+                    for (let verseIndex = 0; verseIndex < surah.verses.length; verseIndex++) {
+                        const verse = surah.verses[verseIndex];
+                        const verseText = verse.join(' ');
+                        const cleanVerseText = this.superCleanArabicText(verseText);
+                        
+                        let partialMatches = 0;
+                        let matchedParts = [];
+                        
+                        for (let spokenWord of spokenWords) {
+                            if (spokenWord.length >= 3) { // Only for substantial words
+                                // Check if spoken word is contained in verse or vice versa
+                                for (let verseWord of verse) {
+                                    const cleanVerseWord = this.superCleanArabicText(verseWord);
+                                    
+                                    if (cleanVerseWord.includes(spokenWord) || spokenWord.includes(cleanVerseWord)) {
+                                        partialMatches++;
+                                        matchedParts.push(cleanVerseWord);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (partialMatches >= 2) {
+                            const confidence = (partialMatches / spokenWords.length) * 85; // Slightly lower confidence
+                            results.push({
+                                surahNumber: parseInt(surahNum),
+                                surahName: surah.name,
+                                verse: verseIndex + 1,
+                                confidence: confidence,
+                                method: 'Partial Word',
+                                pattern: matchedParts.join(' '),
+                                priority: 3
+                            });
                         }
                     }
                 }
                 
-                const score = matchedWords / totalCompared;
-                return { score, matchedWords };
+                return results;
+            }
+
+            // REVOLUTIONARY PHASE 4: PHONETIC MATCHING (PAKISTANI/REGIONAL)
+            phoneticDetection(spokenWords) {
+                const results = [];
+                const phoneticMap = this.createAdvancedPhoneticMap();
+                
+                for (let surahNum in this.quranDatabase) {
+                    const surah = this.quranDatabase[surahNum];
+                    
+                    for (let verseIndex = 0; verseIndex < surah.verses.length; verseIndex++) {
+                        const verse = surah.verses[verseIndex];
+                        
+                        let phoneticMatches = 0;
+                        let matchedPhonetics = [];
+                        
+                        for (let spokenWord of spokenWords) {
+                            for (let verseWord of verse) {
+                                const phoneticScore = this.calculatePhoneticSimilarity(spokenWord, verseWord, phoneticMap);
+                                if (phoneticScore >= 85) {
+                                    phoneticMatches++;
+                                    matchedPhonetics.push(verseWord);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (phoneticMatches >= 2) {
+                            const confidence = (phoneticMatches / spokenWords.length) * 90;
+                            results.push({
+                                surahNumber: parseInt(surahNum),
+                                surahName: surah.name,
+                                verse: verseIndex + 1,
+                                confidence: confidence,
+                                method: 'Phonetic Regional',
+                                pattern: matchedPhonetics.join(' '),
+                                priority: 4
+                            });
+                        }
+                    }
+                }
+                
+                return results;
+            }
+
+            // REVOLUTIONARY PHASE 5: ROOT-BASED MATCHING
+            rootBasedDetection(spokenWords) {
+                const results = [];
+                
+                for (let surahNum in this.quranDatabase) {
+                    const surah = this.quranDatabase[surahNum];
+                    
+                    for (let verseIndex = 0; verseIndex < surah.verses.length; verseIndex++) {
+                        const verse = surah.verses[verseIndex];
+                        
+                        let rootMatches = 0;
+                        let matchedRoots = [];
+                        
+                        for (let spokenWord of spokenWords) {
+                            const spokenRoot = this.extractArabicRoot(spokenWord);
+                            
+                            for (let verseWord of verse) {
+                                const verseRoot = this.extractArabicRoot(verseWord);
+                                
+                                if (spokenRoot && verseRoot && spokenRoot === verseRoot) {
+                                    rootMatches++;
+                                    matchedRoots.push(verseWord);
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (rootMatches >= 2) {
+                            const confidence = (rootMatches / spokenWords.length) * 80;
+                            results.push({
+                                surahNumber: parseInt(surahNum),
+                                surahName: surah.name,
+                                verse: verseIndex + 1,
+                                confidence: confidence,
+                                method: 'Root-Based',
+                                pattern: matchedRoots.join(' '),
+                                priority: 5
+                            });
+                        }
+                    }
+                }
+                
+                return results;
+            }
+
+            // REVOLUTIONARY PHASE 6: CONTEXTUAL PATTERN MATCHING
+            contextualPatternDetection(spokenWords) {
+                const results = [];
+                
+                // Look for common Quranic patterns and phrases
+                const commonPatterns = this.getCommonQuranPatterns();
+                
+                const spokenText = spokenWords.join(' ');
+                
+                for (let pattern of commonPatterns) {
+                    if (this.matchesPattern(spokenText, pattern.text)) {
+                        // Find verses containing this pattern
+                        for (let location of pattern.locations) {
+                            results.push({
+                                surahNumber: location.surah,
+                                surahName: this.getSurahName(location.surah),
+                                verse: location.verse,
+                                confidence: 95,
+                                method: 'Contextual Pattern',
+                                pattern: pattern.text,
+                                priority: 1.5 // High priority for known patterns
+                            });
+                        }
+                    }
+                }
+                
+                return results;
+            }
+
+            // MASTER SCORING AND SELECTION
+            findBestMatch(detectionResults) {
+                if (detectionResults.length === 0) return null;
+                
+                // Sort by priority first, then by confidence
+                detectionResults.sort((a, b) => {
+                    if (a.priority !== b.priority) {
+                        return a.priority - b.priority; // Lower priority number = higher importance
+                    }
+                    return b.confidence - a.confidence; // Higher confidence wins
+                });
+                
+                const bestMatch = detectionResults[0];
+                
+                // Additional validation for very high confidence matches
+                if (bestMatch.confidence >= 95) {
+                    return bestMatch;
+                } else if (bestMatch.confidence >= 80) {
+                    // Double-check with multiple detection methods
+                    const confirmingMethods = detectionResults.filter(result => 
+                        result.surahNumber === bestMatch.surahNumber && 
+                        result.verse === bestMatch.verse
+                    ).length;
+                    
+                    if (confirmingMethods >= 2) {
+                        bestMatch.confidence = Math.min(bestMatch.confidence + 10, 100);
+                        return bestMatch;
+                    }
+                }
+                
+                return bestMatch.confidence >= 70 ? bestMatch : null;
+            }
+
+            // ULTRA-ADVANCED HELPER FUNCTIONS
+            superCleanArabicText(text) {
+                return text
+                    .replace(/[\u064B-\u0652\u0670\u0640]/g, '') // Remove all diacritics
+                    .replace(/[ًٌٍَُِْٰٱ]/g, '') // Remove additional marks
+                    .replace(/ـ/g, '') // Remove tatweel
+                    .replace(/أ|إ|آ/g, 'ا') // Normalize alif variations
+                    .replace(/ة/g, 'ه') // Normalize taa marbutah
+                    .replace(/ي/g, 'ى') // Normalize yaa variations
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .toLowerCase();
+            }
+
+            advancedSimilarity(word1, word2) {
+                // Multi-layer similarity calculation
+                const directSimilarity = this.calculateWordSimilarity(word1, word2);
+                const phoneticSimilarity = this.calculatePhoneticSimilarity(word1, word2, this.createAdvancedPhoneticMap());
+                const rootSimilarity = this.compareRoots(word1, word2);
+                
+                // Weighted average favoring direct similarity
+                return (directSimilarity * 0.5) + (phoneticSimilarity * 0.3) + (rootSimilarity * 0.2);
+            }
+
+            createAdvancedPhoneticMap() {
+                return {
+                    // Pakistani pronunciation variations
+                    'ث': ['س', 's', 'th'],
+                    'ذ': ['ز', 'z', 'dh'], 
+                    'ص': ['س', 's'],
+                    'ض': ['د', 'z', 'd'],
+                    'ط': ['ت', 't'],
+                    'ظ': ['ز', 'z'],
+                    'ق': ['ک', 'ك', 'k', 'g'],
+                    'ة': ['ه', 'h'],
+                    'ؤ': ['و', 'u'],
+                    'ئ': ['ي', 'i'],
+                    // Indian subcontinent variations
+                    'خ': ['ک', 'k', 'kh'],
+                    'غ': ['گ', 'g', 'gh'],
+                    'ف': ['پ', 'p', 'f'],
+                    // Common elisions and contractions
+                    'ال': ['ل', 'al', 'ul'],
+                    'من': ['م', 'min', 'man'],
+                    'في': ['ف', 'fi', 'fee']
+                };
+            }
+
+            calculatePhoneticSimilarity(word1, word2, phoneticMap) {
+                let convertedWord1 = word1;
+                let convertedWord2 = word2;
+                
+                // Apply phonetic transformations
+                for (let [arabic, alternatives] of Object.entries(phoneticMap)) {
+                    for (let alt of alternatives) {
+                        convertedWord1 = convertedWord1.replace(new RegExp(arabic, 'g'), alt);
+                        convertedWord2 = convertedWord2.replace(new RegExp(arabic, 'g'), alt);
+                    }
+                }
+                
+                return this.calculateWordSimilarity(convertedWord1, convertedWord2);
+            }
+
+            extractArabicRoot(word) {
+                // Simplified Arabic root extraction
+                let root = this.superCleanArabicText(word);
+                
+                // Remove common prefixes
+                root = root.replace(/^(ال|و|ف|ب|ل|ك|س|ت|ي|ن|م)/, '');
+                
+                // Remove common suffixes
+                root = root.replace(/(ها|هم|هن|كم|كن|نا|ني|تم|تن|ون|ين|ات|ان|تا|وا)$/, '');
+                
+                // Take first 3 characters as approximate root
+                return root.substring(0, 3);
+            }
+
+            compareRoots(word1, word2) {
+                const root1 = this.extractArabicRoot(word1);
+                const root2 = this.extractArabicRoot(word2);
+                
+                if (!root1 || !root2 || root1.length < 2 || root2.length < 2) return 0;
+                
+                return root1 === root2 ? 100 : this.calculateWordSimilarity(root1, root2);
+            }
+
+            getCommonQuranPatterns() {
+                return [
+                    { text: 'بسم الله الرحمن الرحيم', locations: [{surah: 1, verse: 1}] },
+                    { text: 'الحمد لله رب العالمين', locations: [{surah: 1, verse: 2}] },
+                    { text: 'إياك نعبد وإياك نستعين', locations: [{surah: 1, verse: 5}] },
+                    { text: 'الم', locations: [{surah: 2, verse: 1}, {surah: 3, verse: 1}] },
+                    { text: 'قل هو الله أحد', locations: [{surah: 112, verse: 1}] },
+                    { text: 'قل أعوذ برب الفلق', locations: [{surah: 113, verse: 1}] },
+                    { text: 'قل أعوذ برب الناس', locations: [{surah: 114, verse: 1}] }
+                ];
+            }
+
+            matchesPattern(spokenText, patternText) {
+                const cleanSpoken = this.superCleanArabicText(spokenText);
+                const cleanPattern = this.superCleanArabicText(patternText);
+                
+                return this.calculateWordSimilarity(cleanSpoken, cleanPattern) >= 80;
+            }
+
+            provideIntelligentHints(spokenWords) {
+                console.log("🎯 MASTER AI HINTS:");
+                console.log("💡 Try reciting from the very beginning of a verse");
+                console.log("💡 Speak 4-5 words clearly and slowly");
+                console.log("💡 For 20th Juz, try starting with well-known verses:");
+                console.log("   - 'أمن يجيب المضطر' (An-Naml)");
+                console.log("   - 'وقل رب أدخلني' (Al-Isra)");
+                console.log("   - Famous passages from Surah Al-Anbiya");
+                console.log(`🔍 Heard words: ${spokenWords.join(', ')}`);
             }
 
             isWordSimilar(word1, word2) {
